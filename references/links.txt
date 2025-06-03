@@ -1,0 +1,2 @@
+https://ritvik-mandyam.medium.com/mediapipe-on-windows-a-tale-of-woe-4c4d848b4dab
+https://developers.google.com/mediapipe/framework/getting_started/install.md
