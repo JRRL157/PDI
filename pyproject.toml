@@ -1,0 +1,10 @@
+[project]
+name = "pdi"
+version = "0.1.0"
+description = "Face landmark triangulation and homography mapping"
+requires-python = ">=3.10, <3.13"
+dependencies = [
+    "mediapipe==0.10.14",
+    "opencv-python>=4.8.0",
+    "numpy",
+]

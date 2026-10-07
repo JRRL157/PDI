@@ -1,3 +1,13 @@
+import sys
+
+# MediaPipe legacy solutions API is only supported on Python 3.8 - 3.12 (removed in 3.13+)
+if sys.version_info < (3, 10) or sys.version_info >= (3, 13):
+    sys.exit(
+        f"Error: This project requires Python >= 3.10 and < 3.13 (recommended: Python 3.10).\n"
+        f"Detected Python version: {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}\n"
+        f"Please run this project within a Python 3.10 virtual environment."
+    )
+
 import cv2
 import numpy as np
 import mediapipe as mp

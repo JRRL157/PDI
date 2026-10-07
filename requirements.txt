@@ -1,0 +1,4 @@
+# Requires Python >= 3.10, < 3.13 (recommended: Python 3.10)
+mediapipe==0.10.14
+opencv-python>=4.8.0
+numpy
