@@ -8,6 +8,7 @@ if sys.version_info < (3, 10) or sys.version_info >= (3, 13):
         f"Please run this project within a Python 3.10 virtual environment."
     )
 
+import argparse
 import cv2
 import numpy as np
 import mediapipe as mp
@@ -172,27 +173,55 @@ def getPoints(frame,result_processamento_mesh,landmarks):
 
 # Main function
 def main():
+    parser = argparse.ArgumentParser(description="Digital Puppetry via Delaunay Triangulation & Homography")
+    parser.add_argument("--width", type=int, default=640, help="Target frame width (e.g., 640, 480, 320; default: 640)")
+    parser.add_argument("--height", type=int, default=480, help="Target frame height (e.g., 480, 360, 240; default: 480)")
+    parser.add_argument("--master", type=int, default=0, help="Camera index for Master (default: 0)")
+    parser.add_argument("--puppet", type=int, default=2, help="Camera index for Puppet (default: 2; falls back to 1)")
+    args = parser.parse_args()
+
     # Initialize mediapipe FaceMesh
     mp_face_mesh = mp.solutions.face_mesh
     face_mesh = mp_face_mesh.FaceMesh()
     face_mesh2 = mp_face_mesh.FaceMesh()
 
     # Inicializando Webcam do Mestre
-    cap = cv2.VideoCapture(0)
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+    cap = cv2.VideoCapture(args.master)
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, args.width)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, args.height)
 
-    #Inicializando Webcam da Marionete
-    cap2 = cv2.VideoCapture(1)
-    cap2.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-    cap2.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+    # Inicializando Webcam da Marionete
+    cap2 = cv2.VideoCapture(args.puppet)
+    if not cap2.isOpened() and args.puppet != 1:
+        print(f"Aviso: Não foi possível abrir a câmera {args.puppet}. Tentando câmera 1...")
+        cap2 = cv2.VideoCapture(1)
+
+    cap2.set(cv2.CAP_PROP_FRAME_WIDTH, args.width)
+    cap2.set(cv2.CAP_PROP_FRAME_HEIGHT, args.height)
+
+    if not cap.isOpened() or not cap2.isOpened():
+        print(f"Erro: Não foi possível abrir ambas as câmeras (master={args.master}, puppet={args.puppet}).")
+        if cap.isOpened():
+            cap.release()
+        if cap2.isOpened():
+            cap2.release()
+        return
+
+    print(f"Iniciando captura com resolução {args.width}x{args.height} (Master: {args.master}, Puppet: {args.puppet})...")
 
     while cap.isOpened() and cap2.isOpened():
         ret, frame_master = cap.read()
         ret2, frame_puppet = cap2.read()
         
-        if not ret and not ret2:
+        if not ret or not ret2:
+            print("Falha ao capturar frame de uma das câmeras. Encerrando...")
             break
+
+        # Garante que ambos os frames estejam na resolução configurada
+        if frame_master.shape[1] != args.width or frame_master.shape[0] != args.height:
+            frame_master = cv2.resize(frame_master, (args.width, args.height))
+        if frame_puppet.shape[1] != args.width or frame_puppet.shape[0] != args.height:
+            frame_puppet = cv2.resize(frame_puppet, (args.width, args.height))
         
         result = frame_puppet.copy()
         triangulation = []
